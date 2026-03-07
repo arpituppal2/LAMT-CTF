@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  password  String
+  school    String   // High school verification
+  score     Int      @default(0)
+  createdAt DateTime @default(now())
+  solves    Solve[]
+  awards    Award[]
+}
+
+model Problem {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  answer      Int      // -999 to 999
+  initial     Int      @default(50)
+  minScore    Int      @default(10)
+  decaySolves Int      @default(20)
+  timeLimit   Int      // Seconds
+  prereqIds   String[] // Unlock: ["prob1", "prob2"]
+  solvesCount Int      @default(0)
+  createdAt   DateTime @default(now())
+  solves      Solve[]
+}
+
+model Solve {
+  id        String   @id @default(cuid())
+  teamId    String
+  problemId String
+  solvedAt  DateTime @default(now())
+  team      Team     @relation(fields: [teamId], references: [id])
+  problem   Problem  @relation(fields: [problemId], references: [id])
+  @@unique([teamId, problemId])
+}
+
+model Award {
+  id     String @id @default(cuid())
+  teamId String
+  problemId String
+  points Int
+  team   Team   @relation(fields: [teamId], references: [id])
+}
